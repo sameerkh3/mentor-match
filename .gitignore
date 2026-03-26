@@ -23,3 +23,9 @@ npm-debug.log*
 .idea/
 *.suo
 *.sw?
+
+# Phase Plan Files
+phase-*/
+
+# CLAUDE.md
+CLAUDE.md

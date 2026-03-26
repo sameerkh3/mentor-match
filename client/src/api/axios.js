@@ -16,13 +16,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Redirect to /login on 401
+// Global response error handling
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
+      // Session expired or invalid — clear auth and redirect to login
       localStorage.removeItem('auth');
       window.location.href = '/login';
+    } else if (err.response?.status === 403) {
+      // Access denied — attach a friendly message for components to display
+      err.friendlyMessage = err.response?.data?.error || 'Access denied.';
+    } else if (!err.response) {
+      // Network error (server down, no internet, etc.)
+      err.friendlyMessage = 'Something went wrong. Please try again.';
     }
     return Promise.reject(err);
   }

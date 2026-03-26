@@ -13,15 +13,31 @@ export default function Register() {
     password: '',
     role: 'mentee',
   });
+  const [fieldErrors, setFieldErrors] = useState({});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) =>
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: '' }));
+  };
+
+  const validate = () => {
+    const errs = {};
+    if (!form.name.trim()) errs.name = 'Full name is required.';
+    if (!form.email.trim()) errs.email = 'Email is required.';
+    else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email address.';
+    if (!form.password) errs.password = 'Password is required.';
+    else if (form.password.length < 6) errs.password = 'Password must be at least 6 characters.';
+    return errs;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    const errs = validate();
+    if (Object.keys(errs).length > 0) { setFieldErrors(errs); return; }
     setLoading(true);
     try {
       const { data } = await registerApi(form);
@@ -29,7 +45,7 @@ export default function Register() {
       if (data.user.role === 'mentor') navigate('/mentor/dashboard');
       else navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed. Please try again.');
+      setError(err.friendlyMessage || err.response?.data?.error || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -58,10 +74,10 @@ export default function Register() {
               name="name"
               value={form.name}
               onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${fieldErrors.name ? 'border-red-400' : 'border-gray-300'}`}
               placeholder="Jane Smith"
             />
+            {fieldErrors.name && <p className="mt-1 text-xs text-red-600">{fieldErrors.name}</p>}
           </div>
 
           <div>
@@ -73,10 +89,10 @@ export default function Register() {
               name="email"
               value={form.email}
               onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${fieldErrors.email ? 'border-red-400' : 'border-gray-300'}`}
               placeholder="you@company.com"
             />
+            {fieldErrors.email && <p className="mt-1 text-xs text-red-600">{fieldErrors.email}</p>}
           </div>
 
           <div>
@@ -88,11 +104,10 @@ export default function Register() {
               name="password"
               value={form.password}
               onChange={handleChange}
-              required
-              minLength={6}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${fieldErrors.password ? 'border-red-400' : 'border-gray-300'}`}
               placeholder="At least 6 characters"
             />
+            {fieldErrors.password && <p className="mt-1 text-xs text-red-600">{fieldErrors.password}</p>}
           </div>
 
           <div>
